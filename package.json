@@ -1,0 +1,78 @@
+{
+  "name": "solana-security-reference",
+  "version": "1.0.0",
+  "description": "Comprehensive educational repository demonstrating common Solana security vulnerabilities",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test:all",
+    "test:all": "npm run test:missing-validation && npm run test:authority-failure && npm run test:unsafe-cpi && npm run test:arithmetic-overflow && npm run test:reinitialization",
+    "test:missing-validation": "cd 01_missing_account_validation && anchor test --skip-local-validator",
+    "test:authority-failure": "cd 02_authority_check_failure && anchor test --skip-local-validator", 
+    "test:unsafe-cpi": "cd 03_unsafe_cpi && anchor test --skip-local-validator",
+    "test:arithmetic-overflow": "cd 04_arithmetic_overflow && anchor test --skip-local-validator",
+    "test:reinitialization": "cd 05_reinitialization_attack && anchor test --skip-local-validator",
+    "build": "npm run build:all",
+    "build:all": "npm run build:missing-validation && npm run build:authority-failure && npm run build:unsafe-cpi && npm run build:arithmetic-overflow && npm run build:reinitialization",
+    "build:missing-validation": "cd 01_missing_account_validation && anchor build",
+    "build:authority-failure": "cd 02_authority_check_failure && anchor build",
+    "build:unsafe-cpi": "cd 03_unsafe_cpi && anchor build", 
+    "build:arithmetic-overflow": "cd 04_arithmetic_overflow && anchor build",
+    "build:reinitialization": "cd 05_reinitialization_attack && anchor build",
+    "clean": "npm run clean:all",
+    "clean:all": "find . -name 'target' -type d -exec rm -rf {} + 2>/dev/null || true && find . -name 'node_modules' -type d -exec rm -rf {} + 2>/dev/null || true",
+    "setup": "npm run setup:solana && npm install",
+    "setup:solana": "solana config set --url localhost && solana-keygen new --no-bip39-passphrase --force",
+    "lint": "npm run lint:rust",
+    "lint:rust": "find . -name '*.rs' -path '*/programs/*' -exec cargo fmt --check --manifest-path {} \\; 2>/dev/null || true",
+    "format": "npm run format:rust",
+    "format:rust": "find . -name '*.rs' -path '*/programs/*' -exec cargo fmt --manifest-path {} \\; 2>/dev/null || true",
+    "ci": "npm run build && npm run test && npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/solana-security-reference.git"
+  },
+  "keywords": [
+    "solana",
+    "security",
+    "blockchain",
+    "rust",
+    "anchor",
+    "vulnerabilities",
+    "education",
+    "defi",
+    "smart-contracts"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/your-username/solana-security-reference/issues"
+  },
+  "homepage": "https://github.com/your-username/solana-security-reference#readme",
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.87.6",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.1.0",
+    "chai": "^4.3.6",
+    "mocha": "^9.2.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.9.0"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/web3.js": "^1.87.6"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "01_missing_account_validation",
+    "02_authority_check_failure", 
+    "03_unsafe_cpi",
+    "04_arithmetic_overflow",
+    "05_reinitialization_attack",
+    "bonus_pinocchio_comparison"
+  ]
+}

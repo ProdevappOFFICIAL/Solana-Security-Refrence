@@ -1,0 +1,135 @@
+name: Test All Vulnerability Examples
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+  SOLANA_VERSION: 1.18.0
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        example: [
+          "01_missing_account_validation",
+          "02_authority_check_failure", 
+          "03_unsafe_cpi",
+          "04_arithmetic_overflow",
+          "05_reinitialization_attack"
+        ]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Cache Solana CLI
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/solana
+          ~/.local/share/solana
+        key: solana-${{ env.SOLANA_VERSION }}
+    
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+    
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Install Solana CLI
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+    
+    - name: Install Anchor CLI
+      run: |
+        npm install -g @coral-xyz/anchor-cli@0.29.0
+    
+    - name: Setup Solana config
+      run: |
+        solana config set --url localhost
+        solana-keygen new --no-bip39-passphrase
+    
+    - name: Build example
+      working-directory: ${{ matrix.example }}
+      run: |
+        anchor build
+    
+    - name: Run tests
+      working-directory: ${{ matrix.example }}
+      run: |
+        anchor test --skip-local-validator
+      timeout-minutes: 10
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-lint-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Check formatting
+      run: |
+        find . -name "*.rs" -path "*/programs/*" -exec cargo fmt --check --manifest-path {} \; || true
+    
+    - name: Run clippy
+      run: |
+        for example in 01_missing_account_validation 02_authority_check_failure 03_unsafe_cpi 04_arithmetic_overflow 05_reinitialization_attack; do
+          if [ -d "$example" ]; then
+            cd "$example"
+            cargo clippy --all-targets --all-features -- -D warnings || true
+            cd ..
+          fi
+        done
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check documentation completeness
+      run: |
+        # Check main documentation files exist
+        test -f README.md || (echo "Missing README.md" && exit 1)
+        test -f CONTRIBUTING.md || (echo "Missing CONTRIBUTING.md" && exit 1)
+        test -f DEEP_DIVE.md || (echo "Missing DEEP_DIVE.md" && exit 1)
+        
+        # Check each example has required documentation
+        for example in 01_missing_account_validation 02_authority_check_failure 03_unsafe_cpi 04_arithmetic_overflow 05_reinitialization_attack; do
+          if [ -d "$example" ]; then
+            test -f "$example/README.md" || (echo "Missing $example/README.md" && exit 1)
+            test -f "$example/EXPLOIT.md" || (echo "Missing $example/EXPLOIT.md" && exit 1)
+          fi
+        done
+        
+        echo "All required documentation files are present"
