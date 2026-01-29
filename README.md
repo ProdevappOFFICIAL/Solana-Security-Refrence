@@ -8,14 +8,56 @@ A comprehensive educational repository demonstrating common Solana security vuln
 
 ## Quick Start
 
-### Prerequisites
+### Option 1: Run Educational Tests (No Solana Installation Required)
+
+Perfect for CI/CD, GitHub Actions, or quick learning without local setup:
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/solana-security-reference.git
+cd solana-security-reference
+
+# Install dependencies
+npm install
+
+# Run educational tests (demonstrates vulnerabilities conceptually)
+npm test
+```
+
+The educational tests demonstrate each vulnerability concept and protection mechanism without requiring a local Solana validator. This is perfect for:
+- Understanding vulnerability concepts
+- CI/CD pipelines
+- Quick educational review
+- Environments without Solana toolchain
+
+### Option 2: Run Mock Integration Tests (Node.js Required)
+
+For more detailed testing that simulates real program behavior:
+
+```bash
+# Run mock integration tests for all examples
+npm run test:full
+
+# Or test individual examples
+npm run test:missing-validation
+npm run test:authority-failure
+# etc.
+```
+
+These tests create mock scenarios that demonstrate how the vulnerabilities would work in practice, including expected error messages and protection mechanisms.
+
+### Option 3: Full Local Development Setup
+
+For complete hands-on experience with real Solana programs:
+
+#### Prerequisites
 
 - [Rust](https://rustup.rs/) (latest stable)
-- [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools) (v1.18.0+)
-- [Anchor Framework](https://www.anchor-lang.com/docs/installation) (v0.29.0+)
+- [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools) (v1.18.26+)
+- [Anchor Framework](https://www.anchor-lang.com/docs/installation) (v0.30.1+)
 - [Node.js](https://nodejs.org/) (v16+)
 
-### Installation
+#### Installation
 
 ```bash
 # Clone the repository
@@ -27,12 +69,12 @@ npm install
 
 # Set up Solana for local development
 solana config set --url localhost
-solana-keygen new --no-bip39-passphrase
+solana-keygen new --no-bip39-passphrase --force
 ```
 
-### Running Examples
+#### Running Full Examples
 
-Each vulnerability example is self-contained. To run an example:
+Each vulnerability example is self-contained. To run with real Solana programs:
 
 ```bash
 # Navigate to any example directory
@@ -41,7 +83,10 @@ cd 01_missing_account_validation
 # Build the program
 anchor build
 
-# Run tests (including exploit demonstrations)
+# Start local validator (in separate terminal)
+solana-test-validator
+
+# Run tests with real programs
 anchor test
 ```
 
@@ -116,6 +161,37 @@ Run all tests across examples:
 ```bash
 npm test
 ```
+
+## 🚀 CI/CD Integration
+
+This repository is designed to work seamlessly in CI/CD environments:
+
+### GitHub Actions
+
+The repository includes a comprehensive GitHub Actions workflow (`.github/workflows/test.yml`) that:
+
+- ✅ Installs Solana CLI and Anchor framework
+- ✅ Builds all example programs
+- ✅ Runs comprehensive test suites
+- ✅ Validates code formatting and linting
+- ✅ Checks documentation completeness
+
+### Mock Testing Mode
+
+When Solana toolchain is not available (common in CI environments), the tests automatically switch to "mock mode":
+
+- Demonstrates vulnerability concepts without requiring local validator
+- Shows expected exploit outcomes and protection mechanisms
+- Provides educational value while maintaining CI compatibility
+- All tests pass and provide meaningful output
+
+### Local vs CI Testing
+
+| Environment | Test Type | Requirements | Output |
+|-------------|-----------|--------------|---------|
+| Local Development | Full Integration | Solana CLI + Anchor | Real program execution |
+| CI/CD Pipeline | Mock Demonstration | Node.js only | Conceptual vulnerability demos |
+| Educational Review | Either | Flexible | Complete learning experience |
 
 ## 🔧 Framework Comparison
 
